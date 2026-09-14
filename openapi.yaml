@@ -1,0 +1,1022 @@
+openapi: 3.0.3
+info:
+  title: Noncegate
+  version: 0.1.0
+  description: PoW difficulty policy and independent nonce verification control plane for consortium ledgers.
+  x-product-slug: ai-decentralized-noncegate
+  x-source: ai-in-decentralized+ai/proof-of-work/
+servers:
+- url: https://api.example.com
+tags:
+- name: DifficultyPolicies
+  description: Versioned difficulty targets
+- name: BlockObservations
+  description: Ingested headers
+- name: VerificationResults
+  description: Independent PoW checks
+- name: ForkReports
+  description: Rewrite cost analysis
+- name: Alerts
+  description: Integrity anomalies
+- name: AuditPacks
+  description: Auditor evidence exports
+paths:
+  /v1/difficulty-policies:
+    get:
+      operationId: listDifficultyPolicies
+      tags:
+      - DifficultyPolicies
+      summary: List DifficultyPolicy
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/Cursor'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEnvelopeDifficultyPolicy'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createDifficultyPolicy
+      tags:
+      - DifficultyPolicies
+      summary: Create DifficultyPolicy
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DifficultyPolicyCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeDifficultyPolicy'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/difficulty-policies/{policyId}:
+    parameters:
+    - $ref: '#/components/parameters/PolicyId'
+    get:
+      operationId: getDifficultyPolicy
+      tags:
+      - DifficultyPolicies
+      summary: Get DifficultyPolicy
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeDifficultyPolicy'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/difficulty-policies/{policyId}/approve:
+    parameters:
+    - $ref: '#/components/parameters/PolicyId'
+    post:
+      operationId: approveDifficultyPolicy
+      tags:
+      - DifficultyPolicies
+      summary: Dual-control approve
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeDifficultyPolicy'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /v1/block-observations:
+    get:
+      operationId: listBlockObservations
+      tags:
+      - BlockObservations
+      summary: List BlockObservation
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/Cursor'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEnvelopeBlockObservation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: ingestBlockObservation
+      tags:
+      - BlockObservations
+      summary: Create BlockObservation
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlockObservationCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeBlockObservation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/block-observations/{blockId}:
+    parameters:
+    - $ref: '#/components/parameters/BlockId'
+    get:
+      operationId: getBlockObservation
+      tags:
+      - BlockObservations
+      summary: Get BlockObservation
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeBlockObservation'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/verification-results:
+    get:
+      operationId: listVerificationResults
+      tags:
+      - VerificationResults
+      summary: List VerificationResult
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/Cursor'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEnvelopeVerificationResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createVerificationResult
+      tags:
+      - VerificationResults
+      summary: Create VerificationResult
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerificationResultCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeVerificationResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/verification-results/{resultId}:
+    parameters:
+    - $ref: '#/components/parameters/ResultId'
+    get:
+      operationId: getVerificationResult
+      tags:
+      - VerificationResults
+      summary: Get VerificationResult
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeVerificationResult'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/fork-reports:
+    get:
+      operationId: listForkReports
+      tags:
+      - ForkReports
+      summary: List ForkReport
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/Cursor'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEnvelopeForkReport'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createForkReport
+      tags:
+      - ForkReports
+      summary: Create ForkReport
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForkReportCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeForkReport'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/fork-reports/{forkId}:
+    parameters:
+    - $ref: '#/components/parameters/ForkId'
+    get:
+      operationId: getForkReport
+      tags:
+      - ForkReports
+      summary: Get ForkReport
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeForkReport'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/alerts:
+    get:
+      operationId: listAlerts
+      tags:
+      - Alerts
+      summary: List Alert
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/Cursor'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEnvelopeAlert'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createAlert
+      tags:
+      - Alerts
+      summary: Create Alert
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeAlert'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/alerts/{alertId}:
+    parameters:
+    - $ref: '#/components/parameters/AlertId'
+    get:
+      operationId: getAlert
+      tags:
+      - Alerts
+      summary: Get Alert
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeAlert'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/audit-packs:
+    get:
+      operationId: listAuditPacks
+      tags:
+      - AuditPacks
+      summary: List AuditPack
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/Cursor'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListEnvelopeAuditPack'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createAuditPack
+      tags:
+      - AuditPacks
+      summary: Create AuditPack
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuditPackCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeAuditPack'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /v1/audit-packs/{packId}:
+    parameters:
+    - $ref: '#/components/parameters/PackId'
+    get:
+      operationId: getAuditPack
+      tags:
+      - AuditPacks
+      summary: Get AuditPack
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataEnvelopeAuditPack'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      schema:
+        type: string
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    PolicyId:
+      name: policyId
+      in: path
+      required: true
+      schema:
+        type: string
+    BlockId:
+      name: blockId
+      in: path
+      required: true
+      schema:
+        type: string
+    ResultId:
+      name: resultId
+      in: path
+      required: true
+      schema:
+        type: string
+    ForkId:
+      name: forkId
+      in: path
+      required: true
+      schema:
+        type: string
+    AlertId:
+      name: alertId
+      in: path
+      required: true
+      schema:
+        type: string
+    PackId:
+      name: packId
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    BadRequest:
+      description: Bad request
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: Not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    ResponseMeta:
+      type: object
+      required:
+      - requestId
+      - timestamp
+      properties:
+        requestId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    Problem:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+    DifficultyPolicy:
+      type: object
+      required:
+      - id
+      - version
+      - difficulty
+      - status
+      - effectiveAt
+      properties:
+        id:
+          type: string
+        version:
+          type: integer
+        difficulty:
+          type: integer
+        leadingZeroTarget:
+          type: integer
+        status:
+          type: string
+          enum:
+          - draft
+          - approved
+          - active
+          - superseded
+        effectiveAt:
+          type: string
+          format: date-time
+    DifficultyPolicyCreate:
+      type: object
+      required:
+      - difficulty
+      - leadingZeroTarget
+      - effectiveAt
+      properties:
+        version:
+          type: integer
+        difficulty:
+          type: integer
+        leadingZeroTarget:
+          type: integer
+        status:
+          type: string
+          enum:
+          - draft
+          - approved
+          - active
+          - superseded
+        effectiveAt:
+          type: string
+          format: date-time
+    DataEnvelopeDifficultyPolicy:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/DifficultyPolicy'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    ListEnvelopeDifficultyPolicy:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          type: object
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/DifficultyPolicy'
+            nextCursor:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    BlockObservation:
+      type: object
+      required:
+      - id
+      - height
+      - blockHash
+      - parentHash
+      - nonce
+      - observedAt
+      properties:
+        id:
+          type: string
+        height:
+          type: integer
+        blockHash:
+          type: string
+        parentHash:
+          type: string
+        nonce:
+          type: string
+        observedAt:
+          type: string
+          format: date-time
+        headerOnly:
+          type: boolean
+    BlockObservationCreate:
+      type: object
+      required:
+      - height
+      - blockHash
+      - parentHash
+      - nonce
+      properties:
+        height:
+          type: integer
+        blockHash:
+          type: string
+        parentHash:
+          type: string
+        nonce:
+          type: string
+        observedAt:
+          type: string
+          format: date-time
+        headerOnly:
+          type: boolean
+    DataEnvelopeBlockObservation:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/BlockObservation'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    ListEnvelopeBlockObservation:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          type: object
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/BlockObservation'
+            nextCursor:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    VerificationResult:
+      type: object
+      required:
+      - id
+      - blockId
+      - policyId
+      - valid
+      - verifyDurationMs
+      properties:
+        id:
+          type: string
+        blockId:
+          type: string
+        policyId:
+          type: string
+        valid:
+          type: boolean
+        verifyDurationMs:
+          type: integer
+        failureReason:
+          type: string
+    VerificationResultCreate:
+      type: object
+      required:
+      - blockId
+      - policyId
+      properties:
+        blockId:
+          type: string
+        policyId:
+          type: string
+        valid:
+          type: boolean
+        verifyDurationMs:
+          type: integer
+        failureReason:
+          type: string
+    DataEnvelopeVerificationResult:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/VerificationResult'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    ListEnvelopeVerificationResult:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          type: object
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/VerificationResult'
+            nextCursor:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    ForkReport:
+      type: object
+      required:
+      - id
+      - honestTipHash
+      - candidateTipHash
+      - workDifferential
+      - status
+      properties:
+        id:
+          type: string
+        honestTipHash:
+          type: string
+        candidateTipHash:
+          type: string
+        workDifferential:
+          type: number
+        recomputeCostEstimate:
+          type: string
+        status:
+          type: string
+          enum:
+          - open
+          - resolved
+          - falsePositive
+    ForkReportCreate:
+      type: object
+      required:
+      - honestTipHash
+      - candidateTipHash
+      - workDifferential
+      properties:
+        honestTipHash:
+          type: string
+        candidateTipHash:
+          type: string
+        workDifferential:
+          type: number
+        recomputeCostEstimate:
+          type: string
+        status:
+          type: string
+          enum:
+          - open
+          - resolved
+          - falsePositive
+    DataEnvelopeForkReport:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/ForkReport'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    ListEnvelopeForkReport:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          type: object
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/ForkReport'
+            nextCursor:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    Alert:
+      type: object
+      required:
+      - id
+      - alertType
+      - severity
+      - status
+      - message
+      properties:
+        id:
+          type: string
+        alertType:
+          type: string
+          enum:
+          - invalidNonce
+          - policyDrift
+          - hashRateCliff
+          - forkDetected
+        severity:
+          type: string
+          enum:
+          - low
+          - medium
+          - high
+          - critical
+        status:
+          type: string
+          enum:
+          - open
+          - acked
+          - closed
+        message:
+          type: string
+    AlertCreate:
+      type: object
+      required:
+      - alertType
+      - severity
+      - message
+      properties:
+        alertType:
+          type: string
+          enum:
+          - invalidNonce
+          - policyDrift
+          - hashRateCliff
+          - forkDetected
+        severity:
+          type: string
+          enum:
+          - low
+          - medium
+          - high
+          - critical
+        status:
+          type: string
+          enum:
+          - open
+          - acked
+          - closed
+        message:
+          type: string
+    DataEnvelopeAlert:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/Alert'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    ListEnvelopeAlert:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          type: object
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Alert'
+            nextCursor:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    AuditPack:
+      type: object
+      required:
+      - id
+      - periodStart
+      - periodEnd
+      - status
+      - downloadUri
+      properties:
+        id:
+          type: string
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+          - pending
+          - ready
+          - failed
+        downloadUri:
+          type: string
+          format: uri
+    AuditPackCreate:
+      type: object
+      required:
+      - periodStart
+      - periodEnd
+      properties:
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+          - pending
+          - ready
+          - failed
+        downloadUri:
+          type: string
+          format: uri
+    DataEnvelopeAuditPack:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          $ref: '#/components/schemas/AuditPack'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+    ListEnvelopeAuditPack:
+      type: object
+      required:
+      - data
+      - meta
+      properties:
+        data:
+          type: object
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/AuditPack'
+            nextCursor:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
