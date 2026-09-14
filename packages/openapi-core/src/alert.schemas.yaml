@@ -1,0 +1,128 @@
+openapi: 3.1.0
+info:
+  title: Alert schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    AlertId:
+      type: string
+      pattern: '^alt_[0-9A-HJKMNP-TV-Z]{26}$'
+
+    AlertType:
+      type: string
+      enum: [invalidNonce, policyDrift, hashRateCliff, forkDetected]
+
+    AlertSeverity:
+      type: string
+      enum: [low, medium, high, critical]
+
+    AlertStatus:
+      type: string
+      enum: [open, acked, escalated, silenced, closed]
+
+    Alert:
+      type: object
+      required:
+        - id
+        - alertType
+        - severity
+        - status
+        - message
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          $ref: '#/components/schemas/AlertId'
+        alertType:
+          $ref: '#/components/schemas/AlertType'
+        severity:
+          $ref: '#/components/schemas/AlertSeverity'
+        status:
+          $ref: '#/components/schemas/AlertStatus'
+        message:
+          type: string
+        relatedBlockId:
+          $ref: ./block-observation.schemas.yaml#/components/schemas/BlockId
+        relatedPolicyId:
+          $ref: ./difficulty-policy.schemas.yaml#/components/schemas/PolicyId
+        relatedForkId:
+          $ref: ./fork-report.schemas.yaml#/components/schemas/ForkId
+        resolutionNote:
+          type: string
+        silenceExpiresAt:
+          type: string
+          format: date-time
+        webhookEmitted:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AlertCreateRequest:
+      type: object
+      required: [alertType, severity, message]
+      properties:
+        alertType:
+          $ref: '#/components/schemas/AlertType'
+        severity:
+          $ref: '#/components/schemas/AlertSeverity'
+        message:
+          type: string
+        relatedBlockId:
+          $ref: ./block-observation.schemas.yaml#/components/schemas/BlockId
+        relatedPolicyId:
+          $ref: ./difficulty-policy.schemas.yaml#/components/schemas/PolicyId
+        relatedForkId:
+          $ref: ./fork-report.schemas.yaml#/components/schemas/ForkId
+
+    AlertResolveRequest:
+      type: object
+      required: [resolutionNote]
+      properties:
+        resolutionNote:
+          type: string
+          maxLength: 4000
+
+    AlertSilenceRequest:
+      type: object
+      required: [silenceExpiresAt]
+      properties:
+        silenceExpiresAt:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          maxLength: 2000
+
+    AlertListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+        nextCursor:
+          type: string
+
+    AlertResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Alert'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    AlertListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/AlertListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

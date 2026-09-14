@@ -1,0 +1,142 @@
+openapi: 3.1.0
+info:
+  title: Fork Report API
+  version: 0.1.0
+  description: Rewrite-cost / fork analysis vs honest tip (BR-3, BR-10).
+  license:
+    name: Proprietary
+    url: https://noncegate.local/license
+  x-domain: frk
+servers:
+  - url: https://api.noncegate.local
+security:
+  - apiKey: []
+tags:
+  - name: ForkReports
+    description: Rewrite cost analysis
+paths:
+  /v1/fork-reports:
+    get:
+      operationId: listForkReports
+      tags: [ForkReports]
+      summary: List fork reports
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: status
+          in: query
+          schema:
+            $ref: ./fork-report.schemas.yaml#/components/schemas/ForkStatus
+      responses:
+        '200':
+          description: Fork reports
+          content:
+            application/json:
+              schema:
+                $ref: ./fork-report.schemas.yaml#/components/schemas/ForkReportListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createForkReport
+      tags: [ForkReports]
+      summary: Create a fork / rewrite-cost report
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./fork-report.schemas.yaml#/components/schemas/ForkReportCreateRequest
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./fork-report.schemas.yaml#/components/schemas/ForkReportResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/fork-reports/{forkId}:
+    get:
+      operationId: getForkReport
+      tags: [ForkReports]
+      summary: Get a fork report
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - name: forkId
+          in: path
+          required: true
+          schema:
+            $ref: ./fork-report.schemas.yaml#/components/schemas/ForkId
+      responses:
+        '200':
+          description: Fork report
+          content:
+            application/json:
+              schema:
+                $ref: ./fork-report.schemas.yaml#/components/schemas/ForkReportResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/fork-reports/{forkId}/acknowledge:
+    post:
+      operationId: acknowledgeForkReport
+      tags: [ForkReports]
+      summary: Acknowledge an open fork incident
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: forkId
+          in: path
+          required: true
+          schema:
+            $ref: ./fork-report.schemas.yaml#/components/schemas/ForkId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: ./fork-report.schemas.yaml#/components/schemas/ForkAcknowledgeRequest
+      responses:
+        '200':
+          description: Acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: ./fork-report.schemas.yaml#/components/schemas/ForkReportResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '409':
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

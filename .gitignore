@@ -6,6 +6,7 @@ out/
 coverage/
 .turbo/
 .cache/
+*.tsbuildinfo
 *.log
 .DS_Store
 .env
@@ -14,8 +15,14 @@ coverage/
 *.pem
 .venv/
 __pycache__/
+*.pyc
+test-results/
+playwright-report/
+packages/openapi-core/src/.bundled/
+**/node_modules/
+**/__pycache__/
 
-# Codegen — do not push
+# Codegen — do not commit or push
 .codegen/
 codegen/
 **/zero_codegen/

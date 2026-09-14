@@ -1,0 +1,142 @@
+openapi: 3.1.0
+info:
+  title: Verification Result API
+  version: 0.1.0
+  description: |
+    Independent PoW nonce verification outcomes (BR-2, BR-4, BR-7). Results are append-only.
+  license:
+    name: Proprietary
+    url: https://noncegate.local/license
+  x-domain: vrf
+servers:
+  - url: https://api.noncegate.local
+security:
+  - apiKey: []
+tags:
+  - name: VerificationResults
+    description: Independent PoW checks
+paths:
+  /v1/verification-results:
+    get:
+      operationId: listVerificationResults
+      tags: [VerificationResults]
+      summary: List verification results
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: valid
+          in: query
+          schema:
+            type: boolean
+        - name: blockId
+          in: query
+          schema:
+            $ref: ./block-observation.schemas.yaml#/components/schemas/BlockId
+      responses:
+        '200':
+          description: Results (append-only stream)
+          content:
+            application/json:
+              schema:
+                $ref: ./verification-result.schemas.yaml#/components/schemas/VerificationResultListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createVerificationResult
+      tags: [VerificationResults]
+      summary: Record a verification result for a block
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./verification-result.schemas.yaml#/components/schemas/VerificationResultCreateRequest
+      responses:
+        '201':
+          description: Result recorded
+          content:
+            application/json:
+              schema:
+                $ref: ./verification-result.schemas.yaml#/components/schemas/VerificationResultResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/verification-results/{resultId}:
+    get:
+      operationId: getVerificationResult
+      tags: [VerificationResults]
+      summary: Get a verification result
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - name: resultId
+          in: path
+          required: true
+          schema:
+            $ref: ./verification-result.schemas.yaml#/components/schemas/ResultId
+      responses:
+        '200':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: ./verification-result.schemas.yaml#/components/schemas/VerificationResultResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/verification-results/reverify:
+    post:
+      operationId: reverifySample
+      tags: [VerificationResults]
+      summary: Re-verify a sample block against active or specified policy
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./verification-result.schemas.yaml#/components/schemas/ReverifySampleRequest
+      responses:
+        '201':
+          description: New append-only result
+          content:
+            application/json:
+              schema:
+                $ref: ./verification-result.schemas.yaml#/components/schemas/VerificationResultResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

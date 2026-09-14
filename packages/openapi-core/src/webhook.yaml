@@ -1,0 +1,226 @@
+openapi: 3.1.0
+info:
+  title: Settlement Webhook API
+  version: 0.1.0
+  description: Downstream settlement gating webhooks (BR-12).
+  license:
+    name: Proprietary
+    url: https://noncegate.local/license
+  x-domain: whk
+servers:
+  - url: https://api.noncegate.local
+security:
+  - apiKey: []
+tags:
+  - name: Webhooks
+    description: Settlement consumer gating
+paths:
+  /v1/webhooks:
+    get:
+      operationId: listSettlementWebhooks
+      tags: [Webhooks]
+      summary: List settlement webhook consumers
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Consumers
+          content:
+            application/json:
+              schema:
+                $ref: ./webhook.schemas.yaml#/components/schemas/SettlementWebhookListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createSettlementWebhook
+      tags: [Webhooks]
+      summary: Register a settlement webhook consumer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./webhook.schemas.yaml#/components/schemas/SettlementWebhookCreateRequest
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./webhook.schemas.yaml#/components/schemas/SettlementWebhookResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/webhooks/{webhookId}:
+    get:
+      operationId: getSettlementWebhook
+      tags: [Webhooks]
+      summary: Get a settlement webhook consumer
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - name: webhookId
+          in: path
+          required: true
+          schema:
+            $ref: ./webhook.schemas.yaml#/components/schemas/WebhookId
+      responses:
+        '200':
+          description: Consumer
+          content:
+            application/json:
+              schema:
+                $ref: ./webhook.schemas.yaml#/components/schemas/SettlementWebhookResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/webhooks/{webhookId}/pause:
+    post:
+      operationId: pauseSettlementWebhook
+      tags: [Webhooks]
+      summary: Pause or resume a settlement consumer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: webhookId
+          in: path
+          required: true
+          schema:
+            $ref: ./webhook.schemas.yaml#/components/schemas/WebhookId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./webhook.schemas.yaml#/components/schemas/WebhookPauseRequest
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: ./webhook.schemas.yaml#/components/schemas/SettlementWebhookResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/webhooks/{webhookId}/test:
+    post:
+      operationId: testSettlementWebhook
+      tags: [Webhooks]
+      summary: Emit a test event to the consumer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: webhookId
+          in: path
+          required: true
+          schema:
+            $ref: ./webhook.schemas.yaml#/components/schemas/WebhookId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '201':
+          description: Test delivery recorded
+          content:
+            application/json:
+              schema:
+                $ref: ./webhook.schemas.yaml#/components/schemas/WebhookDeliveryResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/webhooks/{webhookId}/deliveries:
+    get:
+      operationId: listWebhookDeliveries
+      tags: [Webhooks]
+      summary: List delivery log for a consumer
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - name: webhookId
+          in: path
+          required: true
+          schema:
+            $ref: ./webhook.schemas.yaml#/components/schemas/WebhookId
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Deliveries
+          content:
+            application/json:
+              schema:
+                $ref: ./webhook.schemas.yaml#/components/schemas/WebhookDeliveryListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/webhooks/{webhookId}/deliveries/{deliveryId}/replay:
+    post:
+      operationId: replayWebhookDelivery
+      tags: [Webhooks]
+      summary: Replay a prior delivery event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: webhookId
+          in: path
+          required: true
+          schema:
+            $ref: ./webhook.schemas.yaml#/components/schemas/WebhookId
+        - name: deliveryId
+          in: path
+          required: true
+          schema:
+            $ref: ./webhook.schemas.yaml#/components/schemas/DeliveryId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '201':
+          description: Replay delivery
+          content:
+            application/json:
+              schema:
+                $ref: ./webhook.schemas.yaml#/components/schemas/WebhookDeliveryResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

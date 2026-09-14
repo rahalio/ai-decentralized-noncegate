@@ -1,0 +1,169 @@
+openapi: 3.1.0
+info:
+  title: Difficulty Policy API
+  version: 0.1.0
+  description: |
+    Versioned PoW difficulty targets with dual-control approval (BR-1, BR-8).
+    Single-operator changes are rejected; rollback is via a new version only.
+  license:
+    name: Proprietary
+    url: https://noncegate.local/license
+  x-domain: dpol
+servers:
+  - url: https://api.noncegate.local
+    description: Local / product API
+security:
+  - apiKey: []
+tags:
+  - name: DifficultyPolicies
+    description: Versioned difficulty targets and dual-control approvals
+paths:
+  /v1/difficulty-policies:
+    get:
+      operationId: listDifficultyPolicies
+      tags: [DifficultyPolicies]
+      summary: List difficulty policies
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: status
+          in: query
+          schema:
+            $ref: ./difficulty-policy.schemas.yaml#/components/schemas/PolicyStatus
+      responses:
+        '200':
+          description: Policy versions
+          content:
+            application/json:
+              schema:
+                $ref: ./difficulty-policy.schemas.yaml#/components/schemas/DifficultyPolicyListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createDifficultyPolicy
+      tags: [DifficultyPolicies]
+      summary: Propose a new difficulty policy version
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./difficulty-policy.schemas.yaml#/components/schemas/DifficultyPolicyCreateRequest
+      responses:
+        '201':
+          description: Draft / pending-approval policy created
+          content:
+            application/json:
+              schema:
+                $ref: ./difficulty-policy.schemas.yaml#/components/schemas/DifficultyPolicyResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/difficulty-policies/{policyId}:
+    get:
+      operationId: getDifficultyPolicy
+      tags: [DifficultyPolicies]
+      summary: Get a difficulty policy version
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            $ref: ./difficulty-policy.schemas.yaml#/components/schemas/PolicyId
+      responses:
+        '200':
+          description: Policy
+          content:
+            application/json:
+              schema:
+                $ref: ./difficulty-policy.schemas.yaml#/components/schemas/DifficultyPolicyResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/difficulty-policies/{policyId}/approve:
+    post:
+      operationId: approveDifficultyPolicy
+      tags: [DifficultyPolicies]
+      summary: Dual-control approve or reject (second identity)
+      description: |
+        Requires a different operator identity than the proposer (BR-8).
+        Approve moves draft → approved/active at effectiveAt; reject closes the proposal.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            $ref: ./difficulty-policy.schemas.yaml#/components/schemas/PolicyId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./difficulty-policy.schemas.yaml#/components/schemas/DifficultyPolicyApprovalRequest
+      responses:
+        '200':
+          description: Updated policy after dual-control decision
+          content:
+            application/json:
+              schema:
+                $ref: ./difficulty-policy.schemas.yaml#/components/schemas/DifficultyPolicyResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '409':
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/difficulty-policies/active:
+    get:
+      operationId: getActiveDifficultyPolicy
+      tags: [DifficultyPolicies]
+      summary: Get the currently active difficulty policy
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Active policy
+          content:
+            application/json:
+              schema:
+                $ref: ./difficulty-policy.schemas.yaml#/components/schemas/DifficultyPolicyResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

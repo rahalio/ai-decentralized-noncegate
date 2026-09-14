@@ -1,0 +1,18 @@
+{
+  "name": "@noncegate/openapi-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenAPI contracts for Noncegate (common + domain specs)",
+  "scripts": {
+    "lint:domains": "redocly lint",
+    "bundle:domains": "mkdir -p src/.bundled && redocly bundle identity --output src/.bundled/identity.openapi.yaml && redocly bundle identity --output src/.bundled/identity.json && redocly bundle difficulty-policy --output src/.bundled/difficulty-policy.openapi.yaml && redocly bundle difficulty-policy --output src/.bundled/difficulty-policy.json && redocly bundle block-observation --output src/.bundled/block-observation.openapi.yaml && redocly bundle block-observation --output src/.bundled/block-observation.json && redocly bundle verification-result --output src/.bundled/verification-result.openapi.yaml && redocly bundle verification-result --output src/.bundled/verification-result.json && redocly bundle fork-report --output src/.bundled/fork-report.openapi.yaml && redocly bundle fork-report --output src/.bundled/fork-report.json && redocly bundle alert --output src/.bundled/alert.openapi.yaml && redocly bundle alert --output src/.bundled/alert.json && redocly bundle audit-pack --output src/.bundled/audit-pack.openapi.yaml && redocly bundle audit-pack --output src/.bundled/audit-pack.json && redocly bundle webhook --output src/.bundled/webhook.openapi.yaml && redocly bundle webhook --output src/.bundled/webhook.json",
+    "lint": "pnpm run lint:domains",
+    "bundle": "pnpm run bundle:domains"
+  },
+  "devDependencies": {
+    "@redocly/cli": "^1.34.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

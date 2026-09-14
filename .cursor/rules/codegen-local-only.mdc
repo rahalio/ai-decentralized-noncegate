@@ -1,0 +1,11 @@
+---
+description: .codegen must never be committed or pushed to GitHub
+alwaysApply: true
+---
+
+# Codegen tooling is local-only
+
+- Never stage, commit, or push the `.codegen/` directory (or any nested `zero_codegen` tool tree).
+- `.codegen/` is listed in `.gitignore` as a safeguard; do not remove that entry.
+- To restore local codegen after a fresh clone: copy `.codegen/` from `zero-apps-codegen-scaffold` (or the team's agreed source), then run `pnpm codegen:paths`.
+- Generated OpenAPI bundles under `packages/openapi-core/src/.bundled/` and Postman under `platform/tests/postman/generated/` also stay out of Git.

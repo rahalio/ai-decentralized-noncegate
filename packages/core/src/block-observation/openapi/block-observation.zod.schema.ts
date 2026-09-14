@@ -1,0 +1,759 @@
+import { makeApi, Zodios, type ZodiosOptions } from '@zodios/core';
+import { z } from 'zod';
+
+const ingestBlockObservation_Body = z
+  .object({
+    height: z.number().int().gte(0),
+    blockHash: z.string().min(1),
+    parentHash: z.string().min(1),
+    nonce: z.string().min(1),
+    difficultyBits: z.number().int().optional(),
+    observedAt: z.string().datetime({ offset: true }).optional(),
+    headerOnly: z.boolean().optional().default(true),
+    clientLabel: z.string().optional(),
+  })
+  .passthrough();
+const updateHeaderOnlySettings_Body = z
+  .object({
+    enabled: z.boolean(),
+    requiredHeaderFields: z.array(z.string()).optional(),
+    redactionNote: z.string().optional(),
+  })
+  .passthrough();
+const Problem = z
+  .object({
+    type: z.string().url(),
+    title: z.string(),
+    status: z.number().int(),
+    detail: z.string(),
+    instance: z.string().url(),
+    code: z.string(),
+  })
+  .partial()
+  .passthrough();
+const BlockId = z.string();
+const BlockObservation = z
+  .object({
+    id: z.string().regex(/^blk_[0-9A-HJKMNP-TV-Z]{26}$/),
+    height: z.number().int().gte(0),
+    blockHash: z.string().min(1),
+    parentHash: z.string().min(1),
+    nonce: z.string().min(1),
+    difficultyBits: z.number().int().optional(),
+    observedAt: z.string().datetime({ offset: true }),
+    headerOnly: z.boolean(),
+    clientLabel: z.string().optional(),
+    isHonestTip: z.boolean().optional(),
+  })
+  .passthrough();
+const BlockObservationListData = z
+  .object({
+    items: z.array(
+      z
+        .object({
+          id: z.string().regex(/^blk_[0-9A-HJKMNP-TV-Z]{26}$/),
+          height: z.number().int().gte(0),
+          blockHash: z.string().min(1),
+          parentHash: z.string().min(1),
+          nonce: z.string().min(1),
+          difficultyBits: z.number().int().optional(),
+          observedAt: z.string().datetime({ offset: true }),
+          headerOnly: z.boolean(),
+          clientLabel: z.string().optional(),
+          isHonestTip: z.boolean().optional(),
+        })
+        .passthrough()
+    ),
+    nextCursor: z.string().optional(),
+  })
+  .passthrough();
+const ResponseMeta = z
+  .object({
+    requestId: z.string().uuid(),
+    correlationId: z.string(),
+    generatedAt: z.string().datetime({ offset: true }),
+  })
+  .partial()
+  .passthrough();
+const BlockObservationListResponse = z
+  .object({
+    data: z
+      .object({
+        items: z.array(
+          z
+            .object({
+              id: z.string().regex(/^blk_[0-9A-HJKMNP-TV-Z]{26}$/),
+              height: z.number().int().gte(0),
+              blockHash: z.string().min(1),
+              parentHash: z.string().min(1),
+              nonce: z.string().min(1),
+              difficultyBits: z.number().int().optional(),
+              observedAt: z.string().datetime({ offset: true }),
+              headerOnly: z.boolean(),
+              clientLabel: z.string().optional(),
+              isHonestTip: z.boolean().optional(),
+            })
+            .passthrough()
+        ),
+        nextCursor: z.string().optional(),
+      })
+      .passthrough(),
+    meta: z
+      .object({
+        requestId: z.string().uuid(),
+        correlationId: z.string(),
+        generatedAt: z.string().datetime({ offset: true }),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+const BlockObservationCreateRequest = z
+  .object({
+    height: z.number().int().gte(0),
+    blockHash: z.string().min(1),
+    parentHash: z.string().min(1),
+    nonce: z.string().min(1),
+    difficultyBits: z.number().int().optional(),
+    observedAt: z.string().datetime({ offset: true }).optional(),
+    headerOnly: z.boolean().optional().default(true),
+    clientLabel: z.string().optional(),
+  })
+  .passthrough();
+const BlockObservationResponse = z
+  .object({
+    data: z
+      .object({
+        id: z.string().regex(/^blk_[0-9A-HJKMNP-TV-Z]{26}$/),
+        height: z.number().int().gte(0),
+        blockHash: z.string().min(1),
+        parentHash: z.string().min(1),
+        nonce: z.string().min(1),
+        difficultyBits: z.number().int().optional(),
+        observedAt: z.string().datetime({ offset: true }),
+        headerOnly: z.boolean(),
+        clientLabel: z.string().optional(),
+        isHonestTip: z.boolean().optional(),
+      })
+      .passthrough(),
+    meta: z
+      .object({
+        requestId: z.string().uuid(),
+        correlationId: z.string(),
+        generatedAt: z.string().datetime({ offset: true }),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+const HonestTipSummary = z
+  .object({
+    tip: z
+      .object({
+        id: z.string().regex(/^blk_[0-9A-HJKMNP-TV-Z]{26}$/),
+        height: z.number().int().gte(0),
+        blockHash: z.string().min(1),
+        parentHash: z.string().min(1),
+        nonce: z.string().min(1),
+        difficultyBits: z.number().int().optional(),
+        observedAt: z.string().datetime({ offset: true }),
+        headerOnly: z.boolean(),
+        clientLabel: z.string().optional(),
+        isHonestTip: z.boolean().optional(),
+      })
+      .passthrough(),
+    verificationCoveragePct: z.number().gte(0).lte(100),
+    verifyMineTimeRatio: z.number(),
+    openForkDifferential: z.number().optional(),
+    openAlertCount: z.number().int().gte(0),
+  })
+  .passthrough();
+const HonestTipResponse = z
+  .object({
+    data: z
+      .object({
+        tip: z
+          .object({
+            id: z.string().regex(/^blk_[0-9A-HJKMNP-TV-Z]{26}$/),
+            height: z.number().int().gte(0),
+            blockHash: z.string().min(1),
+            parentHash: z.string().min(1),
+            nonce: z.string().min(1),
+            difficultyBits: z.number().int().optional(),
+            observedAt: z.string().datetime({ offset: true }),
+            headerOnly: z.boolean(),
+            clientLabel: z.string().optional(),
+            isHonestTip: z.boolean().optional(),
+          })
+          .passthrough(),
+        verificationCoveragePct: z.number().gte(0).lte(100),
+        verifyMineTimeRatio: z.number(),
+        openForkDifferential: z.number().optional(),
+        openAlertCount: z.number().int().gte(0),
+      })
+      .passthrough(),
+    meta: z
+      .object({
+        requestId: z.string().uuid(),
+        correlationId: z.string(),
+        generatedAt: z.string().datetime({ offset: true }),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+const FeedStatus = z.enum(['healthy', 'lagging', 'down', 'paused']);
+const NodeFeedHealth = z
+  .object({
+    status: z.enum(['healthy', 'lagging', 'down', 'paused']),
+    observationLagMs: z.number().int().gte(0),
+    clientLabel: z.string().optional(),
+    headerOnlyMode: z.boolean(),
+    lastBlockId: z
+      .string()
+      .regex(/^blk_[0-9A-HJKMNP-TV-Z]{26}$/)
+      .optional(),
+    updatedAt: z.string().datetime({ offset: true }),
+    nonReplacementBanner: z.string().optional(),
+  })
+  .passthrough();
+const NodeFeedHealthResponse = z
+  .object({
+    data: z
+      .object({
+        status: z.enum(['healthy', 'lagging', 'down', 'paused']),
+        observationLagMs: z.number().int().gte(0),
+        clientLabel: z.string().optional(),
+        headerOnlyMode: z.boolean(),
+        lastBlockId: z
+          .string()
+          .regex(/^blk_[0-9A-HJKMNP-TV-Z]{26}$/)
+          .optional(),
+        updatedAt: z.string().datetime({ offset: true }),
+        nonReplacementBanner: z.string().optional(),
+      })
+      .passthrough(),
+    meta: z
+      .object({
+        requestId: z.string().uuid(),
+        correlationId: z.string(),
+        generatedAt: z.string().datetime({ offset: true }),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+const HeaderOnlySettings = z
+  .object({
+    enabled: z.boolean(),
+    requiredHeaderFields: z.array(z.string()),
+    redactionNote: z.string().optional(),
+    updatedAt: z.string().datetime({ offset: true }),
+  })
+  .passthrough();
+const HeaderOnlySettingsResponse = z
+  .object({
+    data: z
+      .object({
+        enabled: z.boolean(),
+        requiredHeaderFields: z.array(z.string()),
+        redactionNote: z.string().optional(),
+        updatedAt: z.string().datetime({ offset: true }),
+      })
+      .passthrough(),
+    meta: z
+      .object({
+        requestId: z.string().uuid(),
+        correlationId: z.string(),
+        generatedAt: z.string().datetime({ offset: true }),
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+const HeaderOnlySettingsUpdateRequest = z
+  .object({
+    enabled: z.boolean(),
+    requiredHeaderFields: z.array(z.string()).optional(),
+    redactionNote: z.string().optional(),
+  })
+  .passthrough();
+
+export const schemas: any = {
+  ingestBlockObservation_Body,
+  updateHeaderOnlySettings_Body,
+  Problem,
+  BlockId,
+  BlockObservation,
+  BlockObservationListData,
+  ResponseMeta,
+  BlockObservationListResponse,
+  BlockObservationCreateRequest,
+  BlockObservationResponse,
+  HonestTipSummary,
+  HonestTipResponse,
+  FeedStatus,
+  NodeFeedHealth,
+  NodeFeedHealthResponse,
+  HeaderOnlySettings,
+  HeaderOnlySettingsResponse,
+  HeaderOnlySettingsUpdateRequest,
+};
+
+const endpoints = makeApi([
+  {
+    method: 'get',
+    path: '/v1/block-observations',
+    alias: 'listBlockObservations',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'cursor',
+        type: 'Query',
+        schema: z.string().optional(),
+      },
+      {
+        name: 'limit',
+        type: 'Query',
+        schema: z.number().int().gte(1).lte(100).optional().default(25),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            items: z.array(
+              z
+                .object({
+                  id: z.string().regex(/^blk_[0-9A-HJKMNP-TV-Z]{26}$/),
+                  height: z.number().int().gte(0),
+                  blockHash: z.string().min(1),
+                  parentHash: z.string().min(1),
+                  nonce: z.string().min(1),
+                  difficultyBits: z.number().int().optional(),
+                  observedAt: z.string().datetime({ offset: true }),
+                  headerOnly: z.boolean(),
+                  clientLabel: z.string().optional(),
+                  isHonestTip: z.boolean().optional(),
+                })
+                .passthrough()
+            ),
+            nextCursor: z.string().optional(),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'post',
+    path: '/v1/block-observations',
+    alias: 'ingestBlockObservation',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'body',
+        type: 'Body',
+        schema: ingestBlockObservation_Body,
+      },
+      {
+        name: 'Idempotency-Key',
+        type: 'Header',
+        schema: z.string().min(1).max(128),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            id: z.string().regex(/^blk_[0-9A-HJKMNP-TV-Z]{26}$/),
+            height: z.number().int().gte(0),
+            blockHash: z.string().min(1),
+            parentHash: z.string().min(1),
+            nonce: z.string().min(1),
+            difficultyBits: z.number().int().optional(),
+            observedAt: z.string().datetime({ offset: true }),
+            headerOnly: z.boolean(),
+            clientLabel: z.string().optional(),
+            isHonestTip: z.boolean().optional(),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 400,
+        description: `Malformed request`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'get',
+    path: '/v1/block-observations/:blockId',
+    alias: 'getBlockObservation',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'blockId',
+        type: 'Path',
+        schema: z.string().regex(/^blk_[0-9A-HJKMNP-TV-Z]{26}$/),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            id: z.string().regex(/^blk_[0-9A-HJKMNP-TV-Z]{26}$/),
+            height: z.number().int().gte(0),
+            blockHash: z.string().min(1),
+            parentHash: z.string().min(1),
+            nonce: z.string().min(1),
+            difficultyBits: z.number().int().optional(),
+            observedAt: z.string().datetime({ offset: true }),
+            headerOnly: z.boolean(),
+            clientLabel: z.string().optional(),
+            isHonestTip: z.boolean().optional(),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 404,
+        description: `Resource not found`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'get',
+    path: '/v1/block-observations/feed-health',
+    alias: 'getNodeFeedHealth',
+    requestFormat: 'json',
+    response: z
+      .object({
+        data: z
+          .object({
+            status: z.enum(['healthy', 'lagging', 'down', 'paused']),
+            observationLagMs: z.number().int().gte(0),
+            clientLabel: z.string().optional(),
+            headerOnlyMode: z.boolean(),
+            lastBlockId: z
+              .string()
+              .regex(/^blk_[0-9A-HJKMNP-TV-Z]{26}$/)
+              .optional(),
+            updatedAt: z.string().datetime({ offset: true }),
+            nonReplacementBanner: z.string().optional(),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'get',
+    path: '/v1/block-observations/header-only-settings',
+    alias: 'getHeaderOnlySettings',
+    requestFormat: 'json',
+    response: z
+      .object({
+        data: z
+          .object({
+            enabled: z.boolean(),
+            requiredHeaderFields: z.array(z.string()),
+            redactionNote: z.string().optional(),
+            updatedAt: z.string().datetime({ offset: true }),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'put',
+    path: '/v1/block-observations/header-only-settings',
+    alias: 'updateHeaderOnlySettings',
+    requestFormat: 'json',
+    parameters: [
+      {
+        name: 'body',
+        type: 'Body',
+        schema: updateHeaderOnlySettings_Body,
+      },
+      {
+        name: 'Idempotency-Key',
+        type: 'Header',
+        schema: z.string().min(1).max(128),
+      },
+    ],
+    response: z
+      .object({
+        data: z
+          .object({
+            enabled: z.boolean(),
+            requiredHeaderFields: z.array(z.string()),
+            redactionNote: z.string().optional(),
+            updatedAt: z.string().datetime({ offset: true }),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 400,
+        description: `Malformed request`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+  {
+    method: 'get',
+    path: '/v1/block-observations/honest-tip',
+    alias: 'getHonestTip',
+    requestFormat: 'json',
+    response: z
+      .object({
+        data: z
+          .object({
+            tip: z
+              .object({
+                id: z.string().regex(/^blk_[0-9A-HJKMNP-TV-Z]{26}$/),
+                height: z.number().int().gte(0),
+                blockHash: z.string().min(1),
+                parentHash: z.string().min(1),
+                nonce: z.string().min(1),
+                difficultyBits: z.number().int().optional(),
+                observedAt: z.string().datetime({ offset: true }),
+                headerOnly: z.boolean(),
+                clientLabel: z.string().optional(),
+                isHonestTip: z.boolean().optional(),
+              })
+              .passthrough(),
+            verificationCoveragePct: z.number().gte(0).lte(100),
+            verifyMineTimeRatio: z.number(),
+            openForkDifferential: z.number().optional(),
+            openAlertCount: z.number().int().gte(0),
+          })
+          .passthrough(),
+        meta: z
+          .object({
+            requestId: z.string().uuid(),
+            correlationId: z.string(),
+            generatedAt: z.string().datetime({ offset: true }),
+          })
+          .partial()
+          .passthrough()
+          .optional(),
+      })
+      .passthrough(),
+    errors: [
+      {
+        status: 401,
+        description: `Missing or invalid API key`,
+        schema: z
+          .object({
+            type: z.string().url(),
+            title: z.string(),
+            status: z.number().int(),
+            detail: z.string(),
+            instance: z.string().url(),
+            code: z.string(),
+          })
+          .partial()
+          .passthrough(),
+      },
+    ],
+  },
+]);
+
+export const api: any = new Zodios(
+  'https://api.ddd-codegen-starter.local/v1',
+  endpoints
+);
+
+export function createApiClient(baseUrl: string, options?: ZodiosOptions): any {
+  return new Zodios(baseUrl, endpoints, options);
+}

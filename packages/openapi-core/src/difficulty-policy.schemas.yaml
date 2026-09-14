@@ -1,0 +1,143 @@
+openapi: 3.1.0
+info:
+  title: Difficulty policy schemas
+  version: 0.1.0
+  description: Versioned PoW difficulty targets with dual-control approval.
+paths: {}
+components:
+  schemas:
+    PolicyId:
+      type: string
+      pattern: '^pol_[0-9A-HJKMNP-TV-Z]{26}$'
+      description: Prefixed difficulty policy id.
+
+    PolicyStatus:
+      type: string
+      enum: [draft, pendingApproval, approved, active, superseded, rejected]
+
+    ApprovalDecision:
+      type: string
+      enum: [approve, reject]
+
+    OperatorApproval:
+      type: object
+      required: [approverUserId, decision, decidedAt]
+      properties:
+        approverUserId:
+          $ref: ./common/primitives.yaml#/components/schemas/UserId
+        decision:
+          $ref: '#/components/schemas/ApprovalDecision'
+        reason:
+          type: string
+          maxLength: 2000
+        decidedAt:
+          type: string
+          format: date-time
+
+    DifficultyPolicy:
+      type: object
+      required:
+        - id
+        - version
+        - difficulty
+        - leadingZeroTarget
+        - status
+        - effectiveAt
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          $ref: '#/components/schemas/PolicyId'
+        version:
+          type: integer
+          minimum: 1
+        difficulty:
+          type: integer
+          minimum: 1
+          description: Numeric difficulty target for PoW.
+        leadingZeroTarget:
+          type: integer
+          minimum: 0
+          description: Leading-zero style target (teaching / consortium mode).
+        status:
+          $ref: '#/components/schemas/PolicyStatus'
+        effectiveAt:
+          type: string
+          format: date-time
+        proposedByUserId:
+          $ref: ./common/primitives.yaml#/components/schemas/UserId
+        approvals:
+          type: array
+          items:
+            $ref: '#/components/schemas/OperatorApproval'
+        changeLogNote:
+          type: string
+          maxLength: 2000
+        liveNetworkDifficulty:
+          type: integer
+          description: Observed live network difficulty for drift comparison.
+        driftDetected:
+          type: boolean
+          description: True when live network difficulty diverges from active policy.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    DifficultyPolicyCreateRequest:
+      type: object
+      required: [difficulty, leadingZeroTarget, effectiveAt]
+      properties:
+        difficulty:
+          type: integer
+          minimum: 1
+        leadingZeroTarget:
+          type: integer
+          minimum: 0
+        effectiveAt:
+          type: string
+          format: date-time
+        changeLogNote:
+          type: string
+          maxLength: 2000
+
+    DifficultyPolicyApprovalRequest:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          $ref: '#/components/schemas/ApprovalDecision'
+        reason:
+          type: string
+          maxLength: 2000
+
+    DifficultyPolicyListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DifficultyPolicy'
+        nextCursor:
+          type: string
+
+    DifficultyPolicyResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/DifficultyPolicy'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    DifficultyPolicyListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/DifficultyPolicyListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

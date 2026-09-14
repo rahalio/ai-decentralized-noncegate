@@ -1,0 +1,238 @@
+openapi: 3.1.0
+info:
+  title: Alert API
+  version: 0.1.0
+  description: Integrity anomaly queue with ack / escalate / resolve / silence (BR-5).
+  license:
+    name: Proprietary
+    url: https://noncegate.local/license
+  x-domain: alt
+servers:
+  - url: https://api.noncegate.local
+security:
+  - apiKey: []
+tags:
+  - name: Alerts
+    description: Integrity anomalies
+paths:
+  /v1/alerts:
+    get:
+      operationId: listAlerts
+      tags: [Alerts]
+      summary: List alerts
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: status
+          in: query
+          schema:
+            $ref: ./alert.schemas.yaml#/components/schemas/AlertStatus
+        - name: severity
+          in: query
+          schema:
+            $ref: ./alert.schemas.yaml#/components/schemas/AlertSeverity
+      responses:
+        '200':
+          description: Alerts
+          content:
+            application/json:
+              schema:
+                $ref: ./alert.schemas.yaml#/components/schemas/AlertListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createAlert
+      tags: [Alerts]
+      summary: Open an alert
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./alert.schemas.yaml#/components/schemas/AlertCreateRequest
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./alert.schemas.yaml#/components/schemas/AlertResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/alerts/{alertId}:
+    get:
+      operationId: getAlert
+      tags: [Alerts]
+      summary: Get an alert
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            $ref: ./alert.schemas.yaml#/components/schemas/AlertId
+      responses:
+        '200':
+          description: Alert
+          content:
+            application/json:
+              schema:
+                $ref: ./alert.schemas.yaml#/components/schemas/AlertResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/alerts/{alertId}/ack:
+    post:
+      operationId: ackAlert
+      tags: [Alerts]
+      summary: Acknowledge an alert
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            $ref: ./alert.schemas.yaml#/components/schemas/AlertId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: ./alert.schemas.yaml#/components/schemas/AlertResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/alerts/{alertId}/escalate:
+    post:
+      operationId: escalateAlert
+      tags: [Alerts]
+      summary: Escalate an alert
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            $ref: ./alert.schemas.yaml#/components/schemas/AlertId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Escalated
+          content:
+            application/json:
+              schema:
+                $ref: ./alert.schemas.yaml#/components/schemas/AlertResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/alerts/{alertId}/resolve:
+    post:
+      operationId: resolveAlert
+      tags: [Alerts]
+      summary: Resolve an alert with a note
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            $ref: ./alert.schemas.yaml#/components/schemas/AlertId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./alert.schemas.yaml#/components/schemas/AlertResolveRequest
+      responses:
+        '200':
+          description: Resolved
+          content:
+            application/json:
+              schema:
+                $ref: ./alert.schemas.yaml#/components/schemas/AlertResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/alerts/{alertId}/silence:
+    post:
+      operationId: silenceAlert
+      tags: [Alerts]
+      summary: Silence an alert until expiry (audited)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            $ref: ./alert.schemas.yaml#/components/schemas/AlertId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./alert.schemas.yaml#/components/schemas/AlertSilenceRequest
+      responses:
+        '200':
+          description: Silenced
+          content:
+            application/json:
+              schema:
+                $ref: ./alert.schemas.yaml#/components/schemas/AlertResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

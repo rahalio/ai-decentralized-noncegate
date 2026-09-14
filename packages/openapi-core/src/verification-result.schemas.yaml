@@ -1,0 +1,90 @@
+openapi: 3.1.0
+info:
+  title: Verification result schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    ResultId:
+      type: string
+      pattern: '^vrf_[0-9A-HJKMNP-TV-Z]{26}$'
+
+    VerificationResult:
+      type: object
+      required:
+        - id
+        - blockId
+        - policyId
+        - valid
+        - verifyDurationMs
+        - createdAt
+      properties:
+        id:
+          $ref: '#/components/schemas/ResultId'
+        blockId:
+          $ref: ./block-observation.schemas.yaml#/components/schemas/BlockId
+        policyId:
+          $ref: ./difficulty-policy.schemas.yaml#/components/schemas/PolicyId
+        policyVersion:
+          type: integer
+        valid:
+          type: boolean
+        verifyDurationMs:
+          type: integer
+          minimum: 0
+        failureReason:
+          type: string
+        headerOnly:
+          type: boolean
+        parentHashMatched:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    VerificationResultCreateRequest:
+      type: object
+      required: [blockId, policyId]
+      properties:
+        blockId:
+          $ref: ./block-observation.schemas.yaml#/components/schemas/BlockId
+        policyId:
+          $ref: ./difficulty-policy.schemas.yaml#/components/schemas/PolicyId
+
+    ReverifySampleRequest:
+      type: object
+      required: [blockId]
+      properties:
+        blockId:
+          $ref: ./block-observation.schemas.yaml#/components/schemas/BlockId
+        policyId:
+          $ref: ./difficulty-policy.schemas.yaml#/components/schemas/PolicyId
+
+    VerificationResultListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/VerificationResult'
+        nextCursor:
+          type: string
+
+    VerificationResultResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/VerificationResult'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    VerificationResultListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/VerificationResultListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

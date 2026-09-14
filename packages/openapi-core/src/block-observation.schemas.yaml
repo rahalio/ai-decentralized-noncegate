@@ -1,0 +1,211 @@
+openapi: 3.1.0
+info:
+  title: Block observation schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    BlockId:
+      type: string
+      pattern: '^blk_[0-9A-HJKMNP-TV-Z]{26}$'
+
+    FeedStatus:
+      type: string
+      enum: [healthy, lagging, down, paused]
+
+    BlockObservation:
+      type: object
+      required:
+        - id
+        - height
+        - blockHash
+        - parentHash
+        - nonce
+        - observedAt
+        - headerOnly
+      properties:
+        id:
+          $ref: '#/components/schemas/BlockId'
+        height:
+          type: integer
+          minimum: 0
+        blockHash:
+          type: string
+          minLength: 1
+        parentHash:
+          type: string
+          minLength: 1
+        nonce:
+          type: string
+          minLength: 1
+        difficultyBits:
+          type: integer
+        observedAt:
+          type: string
+          format: date-time
+        headerOnly:
+          type: boolean
+          description: True when only header fields were ingested (BR-7).
+        clientLabel:
+          type: string
+          description: Node client identity label (non-replacement feed).
+        isHonestTip:
+          type: boolean
+
+    BlockObservationCreateRequest:
+      type: object
+      required: [height, blockHash, parentHash, nonce]
+      properties:
+        height:
+          type: integer
+          minimum: 0
+        blockHash:
+          type: string
+          minLength: 1
+        parentHash:
+          type: string
+          minLength: 1
+        nonce:
+          type: string
+          minLength: 1
+        difficultyBits:
+          type: integer
+        observedAt:
+          type: string
+          format: date-time
+        headerOnly:
+          type: boolean
+          default: true
+        clientLabel:
+          type: string
+
+    HonestTipSummary:
+      type: object
+      required:
+        - tip
+        - verificationCoveragePct
+        - verifyMineTimeRatio
+        - openAlertCount
+      properties:
+        tip:
+          $ref: '#/components/schemas/BlockObservation'
+        verificationCoveragePct:
+          type: number
+          minimum: 0
+          maximum: 100
+        verifyMineTimeRatio:
+          type: number
+          description: Verify latency vs estimated mine time (BR-4).
+        openForkDifferential:
+          type: number
+        openAlertCount:
+          type: integer
+          minimum: 0
+
+    NodeFeedHealth:
+      type: object
+      required: [status, observationLagMs, headerOnlyMode, updatedAt]
+      properties:
+        status:
+          $ref: '#/components/schemas/FeedStatus'
+        observationLagMs:
+          type: integer
+          minimum: 0
+        clientLabel:
+          type: string
+        headerOnlyMode:
+          type: boolean
+        lastBlockId:
+          $ref: '#/components/schemas/BlockId'
+        updatedAt:
+          type: string
+          format: date-time
+        nonReplacementBanner:
+          type: string
+          description: Reminder that Noncegate sits beside consensus clients (BR-9).
+
+    HeaderOnlySettings:
+      type: object
+      required: [enabled, requiredHeaderFields, updatedAt]
+      properties:
+        enabled:
+          type: boolean
+        requiredHeaderFields:
+          type: array
+          items:
+            type: string
+          description: Fields required for PoW check without bodies.
+        redactionNote:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+
+    HeaderOnlySettingsUpdateRequest:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+        requiredHeaderFields:
+          type: array
+          items:
+            type: string
+        redactionNote:
+          type: string
+
+    BlockObservationListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlockObservation'
+        nextCursor:
+          type: string
+
+    BlockObservationResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/BlockObservation'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    BlockObservationListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/BlockObservationListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    HonestTipResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/HonestTipSummary'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    NodeFeedHealthResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/NodeFeedHealth'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    HeaderOnlySettingsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/HeaderOnlySettings'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

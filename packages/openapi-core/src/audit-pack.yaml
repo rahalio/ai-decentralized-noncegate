@@ -1,0 +1,101 @@
+openapi: 3.1.0
+info:
+  title: Audit Pack API
+  version: 0.1.0
+  description: Period evidence packs for auditors (BR-6, BR-11).
+  license:
+    name: Proprietary
+    url: https://noncegate.local/license
+  x-domain: apk
+servers:
+  - url: https://api.noncegate.local
+security:
+  - apiKey: []
+tags:
+  - name: AuditPacks
+    description: Auditor evidence exports
+paths:
+  /v1/audit-packs:
+    get:
+      operationId: listAuditPacks
+      tags: [AuditPacks]
+      summary: List audit packs
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Packs
+          content:
+            application/json:
+              schema:
+                $ref: ./audit-pack.schemas.yaml#/components/schemas/AuditPackListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createAuditPack
+      tags: [AuditPacks]
+      summary: Generate a period audit pack
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./audit-pack.schemas.yaml#/components/schemas/AuditPackCreateRequest
+      responses:
+        '201':
+          description: Pack generation started or ready
+          content:
+            application/json:
+              schema:
+                $ref: ./audit-pack.schemas.yaml#/components/schemas/AuditPackResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/audit-packs/{packId}:
+    get:
+      operationId: getAuditPack
+      tags: [AuditPacks]
+      summary: Get audit pack metadata and attestation hash
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - name: packId
+          in: path
+          required: true
+          schema:
+            $ref: ./audit-pack.schemas.yaml#/components/schemas/PackId
+      responses:
+        '200':
+          description: Pack
+          content:
+            application/json:
+              schema:
+                $ref: ./audit-pack.schemas.yaml#/components/schemas/AuditPackResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

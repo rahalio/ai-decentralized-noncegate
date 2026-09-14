@@ -1,0 +1,112 @@
+openapi: 3.1.0
+info:
+  title: Fork report schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    ForkId:
+      type: string
+      pattern: '^frk_[0-9A-HJKMNP-TV-Z]{26}$'
+
+    ForkStatus:
+      type: string
+      enum: [open, acknowledged, resolved, falsePositive]
+
+    ForkReport:
+      type: object
+      required:
+        - id
+        - honestTipHash
+        - candidateTipHash
+        - workDifferential
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          $ref: '#/components/schemas/ForkId'
+        honestTipHash:
+          type: string
+        candidateTipHash:
+          type: string
+        workDifferential:
+          type: number
+          description: Cumulative work differential vs honest tip (BR-3, BR-10).
+        recomputeCostEstimate:
+          type: string
+          description: Human-readable recomputation cost narrative.
+        affectedHeightStart:
+          type: integer
+        affectedHeightEnd:
+          type: integer
+        status:
+          $ref: '#/components/schemas/ForkStatus'
+        incidentNotes:
+          type: string
+        acknowledgedByUserId:
+          $ref: ./common/primitives.yaml#/components/schemas/UserId
+        acknowledgedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ForkReportCreateRequest:
+      type: object
+      required: [honestTipHash, candidateTipHash, workDifferential]
+      properties:
+        honestTipHash:
+          type: string
+        candidateTipHash:
+          type: string
+        workDifferential:
+          type: number
+        recomputeCostEstimate:
+          type: string
+        affectedHeightStart:
+          type: integer
+        affectedHeightEnd:
+          type: integer
+        incidentNotes:
+          type: string
+
+    ForkAcknowledgeRequest:
+      type: object
+      properties:
+        incidentNotes:
+          type: string
+          maxLength: 4000
+
+    ForkReportListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForkReport'
+        nextCursor:
+          type: string
+
+    ForkReportResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ForkReport'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    ForkReportListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ForkReportListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

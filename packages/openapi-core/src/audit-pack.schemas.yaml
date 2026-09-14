@@ -1,0 +1,103 @@
+openapi: 3.1.0
+info:
+  title: Audit pack schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    PackId:
+      type: string
+      pattern: '^apk_[0-9A-HJKMNP-TV-Z]{26}$'
+
+    AuditPackStatus:
+      type: string
+      enum: [pending, ready, failed]
+
+    AuditPack:
+      type: object
+      required:
+        - id
+        - periodStart
+        - periodEnd
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          $ref: '#/components/schemas/PackId'
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/AuditPackStatus'
+        downloadUri:
+          type: string
+          format: uri
+        contentHash:
+          type: string
+          description: Attestation hash of pack contents (BR-6).
+        policyCount:
+          type: integer
+          minimum: 0
+        verificationCount:
+          type: integer
+          minimum: 0
+        alertResolutionCount:
+          type: integer
+          minimum: 0
+        coveragePct:
+          type: number
+          minimum: 0
+          maximum: 100
+        retentionWarning:
+          type: boolean
+          description: True when period nears audit retention edge (BR-11).
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AuditPackCreateRequest:
+      type: object
+      required: [periodStart, periodEnd]
+      properties:
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+
+    AuditPackListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditPack'
+        nextCursor:
+          type: string
+
+    AuditPackResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/AuditPack'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    AuditPackListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/AuditPackListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

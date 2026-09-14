@@ -1,0 +1,165 @@
+openapi: 3.1.0
+info:
+  title: Webhook schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    WebhookId:
+      type: string
+      pattern: '^whk_[0-9A-HJKMNP-TV-Z]{26}$'
+
+    DeliveryId:
+      type: string
+      pattern: '^whd_[0-9A-HJKMNP-TV-Z]{26}$'
+
+    WebhookStatus:
+      type: string
+      enum: [active, paused, disabled]
+
+    DeliveryStatus:
+      type: string
+      enum: [pending, delivered, failed, replayed]
+
+    SettlementWebhook:
+      type: object
+      required:
+        - id
+        - name
+        - endpointUrl
+        - status
+        - pauseOnFail
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          $ref: '#/components/schemas/WebhookId'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        endpointUrl:
+          type: string
+          format: uri
+        status:
+          $ref: '#/components/schemas/WebhookStatus'
+        pauseOnFail:
+          type: boolean
+          description: Gate settlement when verification fails (BR-12).
+        lastGatedTipHash:
+          type: string
+        lastDeliveryStatus:
+          $ref: '#/components/schemas/DeliveryStatus'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SettlementWebhookCreateRequest:
+      type: object
+      required: [name, endpointUrl]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        endpointUrl:
+          type: string
+          format: uri
+        pauseOnFail:
+          type: boolean
+          default: true
+
+    WebhookPauseRequest:
+      type: object
+      required: [paused]
+      properties:
+        paused:
+          type: boolean
+
+    WebhookDelivery:
+      type: object
+      required:
+        - id
+        - webhookId
+        - status
+        - eventType
+        - createdAt
+      properties:
+        id:
+          $ref: '#/components/schemas/DeliveryId'
+        webhookId:
+          $ref: '#/components/schemas/WebhookId'
+        status:
+          $ref: '#/components/schemas/DeliveryStatus'
+        eventType:
+          type: string
+        tipHash:
+          type: string
+        httpStatus:
+          type: integer
+        errorDetail:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    SettlementWebhookListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SettlementWebhook'
+        nextCursor:
+          type: string
+
+    WebhookDeliveryListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookDelivery'
+        nextCursor:
+          type: string
+
+    SettlementWebhookResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/SettlementWebhook'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    SettlementWebhookListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/SettlementWebhookListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    WebhookDeliveryResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/WebhookDelivery'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    WebhookDeliveryListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/WebhookDeliveryListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

@@ -96,10 +96,10 @@ flowchart LR
 - **Leading:** verification coverage %; verify/mine time ratio; dual-control compliance on policy changes.
 - **Lagging:** undetected invalid-block incidents; auditor exceptions; settlement pauses avoided vs incurred.
 
-## OpenAPI skeleton
+## OpenAPI
 
-Canonical HTTP surface lives in sibling `openapi.yaml`. Summarize here:
+Canonical HTTP surface: one OpenAPI 3.1 YAML per domain under `packages/openapi-core/src/`.
 
-- **Base path:** `/v1/...`
+- **Base path:** `/v1/...` (product domains); identity blueprint remains `/v0/...`
 - **Auth:** API key and/or Bearer JWT (operator)
-- **Resource groups:** DifficultyPolicies, BlockObservations, VerificationResults, ForkReports, Alerts, AuditPacks
+- **Domains:** identity, difficulty-policy, block-observation, verification-result, fork-report, alert, audit-pack, webhook

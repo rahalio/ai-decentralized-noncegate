@@ -1,0 +1,190 @@
+openapi: 3.1.0
+info:
+  title: Block Observation API
+  version: 0.1.0
+  description: |
+    Header ingest, honest tip, feed health, and header-only mode (BR-2, BR-7, BR-9, BR-10).
+  license:
+    name: Proprietary
+    url: https://noncegate.local/license
+  x-domain: bob
+servers:
+  - url: https://api.noncegate.local
+security:
+  - apiKey: []
+tags:
+  - name: BlockObservations
+    description: Ingested headers and tip/feed health
+paths:
+  /v1/block-observations:
+    get:
+      operationId: listBlockObservations
+      tags: [BlockObservations]
+      summary: List block observations
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Observations
+          content:
+            application/json:
+              schema:
+                $ref: ./block-observation.schemas.yaml#/components/schemas/BlockObservationListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: ingestBlockObservation
+      tags: [BlockObservations]
+      summary: Ingest a block header observation
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./block-observation.schemas.yaml#/components/schemas/BlockObservationCreateRequest
+      responses:
+        '201':
+          description: Observation created
+          content:
+            application/json:
+              schema:
+                $ref: ./block-observation.schemas.yaml#/components/schemas/BlockObservationResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/block-observations/{blockId}:
+    get:
+      operationId: getBlockObservation
+      tags: [BlockObservations]
+      summary: Get a block observation
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      parameters:
+        - name: blockId
+          in: path
+          required: true
+          schema:
+            $ref: ./block-observation.schemas.yaml#/components/schemas/BlockId
+      responses:
+        '200':
+          description: Observation
+          content:
+            application/json:
+              schema:
+                $ref: ./block-observation.schemas.yaml#/components/schemas/BlockObservationResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/block-observations/honest-tip:
+    get:
+      operationId: getHonestTip
+      tags: [BlockObservations]
+      summary: Honest tip summary for operator home
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tip + coverage metrics
+          content:
+            application/json:
+              schema:
+                $ref: ./block-observation.schemas.yaml#/components/schemas/HonestTipResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/block-observations/feed-health:
+    get:
+      operationId: getNodeFeedHealth
+      tags: [BlockObservations]
+      summary: Node feed health (beside clients, not replacing consensus)
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Feed health
+          content:
+            application/json:
+              schema:
+                $ref: ./block-observation.schemas.yaml#/components/schemas/NodeFeedHealthResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+  /v1/block-observations/header-only-settings:
+    get:
+      operationId: getHeaderOnlySettings
+      tags: [BlockObservations]
+      summary: Get header-only verification mode settings
+      security:
+        - apiKey: []
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: ./block-observation.schemas.yaml#/components/schemas/HeaderOnlySettingsResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    put:
+      operationId: updateHeaderOnlySettings
+      tags: [BlockObservations]
+      summary: Update header-only mode
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./block-observation.schemas.yaml#/components/schemas/HeaderOnlySettingsUpdateRequest
+      responses:
+        '200':
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: ./block-observation.schemas.yaml#/components/schemas/HeaderOnlySettingsResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth
